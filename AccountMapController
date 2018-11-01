@@ -1,0 +1,365 @@
+({
+    jsLoaded: function(component, event, helper) {
+        var map = L.map('map', {tap:false,zoomControl: true,drawControl: true,zoom:1,zoomAnimation:false,fadeAnimation:true,markerZoomAnimation:true,attributionControl:true}).setView([37.784173, -122.401557], 14);
+
+		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+     }).addTo(map);
+        var global = window;
+        component.set("v.map", map);
+        
+        /*var editableLayers = new L.FeatureGroup();
+		map.addLayer(editableLayers);
+        var drawPluginOptions = {
+            position: 'topleft',
+            draw: {
+                polygon: {
+                    allowIntersection: true, // Restricts shapes to simple polygons
+                    drawError: {
+                        color: '#e1e100', // Color the shape will turn when intersects
+                        message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+                    },
+                    shapeOptions: {
+                        color: '#97009c'
+                    }
+                },
+                // disable toolbar item by setting it to false
+                polyline: false,
+                circle: true, // Turns off this drawing tool
+                rectangle: false,
+                marker: true,
+            },
+            edit: {
+                featureGroup: editableLayers, //REQUIRED!!
+                remove: true
+            }
+        };
+        
+        // Initialise the draw control and pass it the FeatureGroup of editable layers
+        var drawControl = new L.Control.Draw(drawPluginOptions);
+        map.addControl(drawControl);
+        
+        var editableLayers = new L.FeatureGroup();
+        map.addLayer(editableLayers);
+        
+        map.on('draw:created', function(e) {
+            var type = e.layerType,
+                layer = e.layer;
+            
+            if (type === 'marker') {
+                layer.bindPopup('A popup!');
+            }
+             if (type === 'circle') {
+                 var points = layer._latlngs;
+			var geojson = layer.toGeoJSON();
+			console.log(JSON.stringify(geojson) );
+                 var coords = geojson.geometry.coordinates;
+               
+                console.log(coords + " " + coords[0] + " "+ coords[1]);
+                  var newMarker = new L.marker(coords).addTo(map);
+                         map.on('click', function(e) {
+            //alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+            var showToast = $A.get("e.force:showToast"); 
+            var sMsg = "Latitude :" + (e.latlng.lat).toFixed(6);
+            sMsg += "\n Longitude : " + (e.latlng.lng).toFixed(6);
+            showToast.setParams({ 
+                'title' : 'Coordinates!', 
+                'message' : sMsg ,
+                //'type' : 'success'
+                
+            }); 
+            showToast.fire(); });
+             
+			}	
+                 
+            editableLayers.addLayer(layer);
+        });
+        var toolbar = map.toolbar = (function() {
+          for (var type in drawControl._toolbars) {
+            if (drawControl._toolbars[type] instanceof L.EditToolbar) {
+              return drawControl._toolbars[type];
+            }
+          }
+        })();
+        toolbar._modes.edit.handler.enable();               
+        component.set("v.map", map);*/
+
+    },
+    
+    AllaccountsLoaded: function(component, event, helper) {
+        // All GP Button
+        var map = component.get('v.map');
+        
+        var accounts = event.getParam('accounts');
+        //Adding markers and popup
+        console.log(accounts);
+        for (var i=0; i<accounts.length; i++) {
+            var account = accounts[i];
+            var latLng = [account.Location__Latitude__s, account.Location__Longitude__s];
+            var accname = account.Name;
+            var rating = account.GP_Rating__c;
+            var Fundraising = account.Expected_Date_of_Next_Fundraise__c;
+            L.marker(latLng, {account: account}).addTo(map).bindPopup('GP Name: '+ accname +'<br>'+ 'Rating: '+ rating 
+                                                                      +'<br>'+ 'Expected Fundraise: '+ Fundraising).openPopup();
+            
+        }
+        
+        
+        map.on('click', function(e) {
+            //alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+            var showToast = $A.get("e.force:showToast"); 
+            var sMsg = "Latitude :" + (e.latlng.lat).toFixed(6);
+            sMsg += "\n Longitude : " + (e.latlng.lng).toFixed(6);
+            showToast.setParams({ 
+                'title' : 'Coordinates!', 
+                'message' : sMsg ,
+                //'type' : 'success'
+                
+            }); 
+            showToast.fire(); });
+        
+    },
+    
+    MapNearby: function(component, event, helper){
+        console.log('Controller.MapNearBy is called :');
+		        
+        //Deleting previous map and initialize new map    
+        var map = component.get('v.map');
+        map.remove();
+        map = L.map('map', {tap:false,zoomControl: true,drawControl: false,zoom:1,zoomAnimation:false,fadeAnimation:true,markerZoomAnimation:true,attributionControl:true}).setView([37.784173, -122.401557], 2);
+         
+        
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+     }).addTo(map);
+        component.set("v.map", map);
+        var accounts = event.getParam('accounts');
+        
+        console.log('MapNearBy List of Accounts: '+accounts);
+        var setAccount = [];
+        map.locate({setView: true, maxZoom: 15}).on('locationfound', function(e){
+
+            var radius = e.accuracy / 2;
+            var location = e.latlng;
+            map.panTo(location);
+            L.marker(location).addTo(map).bindPopup('Current Location').openPopup();
+            //Add a layer of circle
+            var circle = L.circle([e.latitude, e.longitude],{
+                color: '',
+                fillColor: '#f03',
+                fillOpacity: 0,
+                radius: 1000
+			}).addTo(map);
+            //Get the 4 Boundaries in the circle
+        	var bounds = circle.getBounds();
+			var North = bounds.getNorth();
+        	var South = bounds.getSouth();
+			var East = bounds.getEast();
+			var West = bounds.getWest();
+			console.log("North:"+North +"South:"+ South + "East:"+East + "West:"+ West );
+
+			//Adding markers and popup
+            for (var i=0; i<accounts.length; i++) {
+                
+                var account = accounts[i];
+                console.log('------Check---' + account + accounts[i]+ account.Name);
+                var latLng = [account.Location__Latitude__s, account.Location__Longitude__s];
+                var accname = account.Name;
+                var rating = account.GP_Rating__c;
+                var Fundraising = account.Expected_Date_of_Next_Fundraise__c;
+                if( account.Location__Longitude__s<East && account.Location__Longitude__s>West && account.Location__Latitude__s<North && account.Location__Latitude__s>South ){
+                   
+                    L.marker(latLng, {account: account}).addTo(map).bindPopup('GP Name: '+ accname +'<br>'+ 'Rating: '+ rating 
+                                                                              +'<br>'+ 'Expected Fundraise: '+ Fundraising).openPopup();
+                    setAccount.push(account); //Save the account to the array to return event attributes
+                    console.log("------setAccount------"+setAccount)
+                }  
+            } 							
+
+      	});   
+        		//Passing parameters to event
+        		window.setTimeout($A.getCallback(function() {
+                var event = $A.get("e.c:ReturnFilteredAccounts");
+                event.setParams({"Filteraccount": setAccount});
+                event.fire();}), 500);
+				
+        map.on('click', function(e) {
+            //alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+            var showToast = $A.get("e.force:showToast"); 
+            var sMsg = "Latitude :" + (e.latlng.lat).toFixed(6);
+            sMsg += "\n Longitude : " + (e.latlng.lng).toFixed(6);
+            showToast.setParams({ 
+                'title' : 'Coordinates!', 
+                'message' : sMsg ,
+                //'type' : 'success'
+                
+            }); 
+            showToast.fire(); });
+        
+    },
+    
+    accountsLoaded: function(component, event, helper) {
+        console.log('event hit');
+       //Initial account load and add to marker
+        var map = component.get('v.map');
+        var accounts = event.getParam('accounts');
+        
+        console.log('my accounts' + accounts);
+        for (var i=0; i<accounts.length; i++) {
+            var account = accounts[i];
+            var latLng = [account.Location__Latitude__s, account.Location__Longitude__s];
+            var accname = account.Name;
+            var rating = account.GP_Rating__c;
+            var Fundraising = account.Expected_Date_of_Next_Fundraise__c;
+            L.marker(latLng, {account: account}).addTo(map).bindPopup('GP Name: '+ accname +'<br>'+ 'Rating: '+ rating 
+                                                                      +'<br>'+ 'Expected Fundraise: '+ Fundraising).openPopup();
+            console.log('accccc' + latLng);
+            
+        } //Zoom in to location and add markers
+        map.locate({setView: true, maxZoom: 16})
+        .on('locationfound', function(e){
+            console.log('located');
+            var radius = e.accuracy / 2;
+            var location = e.latlng;
+            console.log('my location' + location);
+            map.panTo(location);
+            L.marker(location).addTo(map).bindPopup('Current Location').openPopup();
+            
+        	});
+     
+    },
+    
+    accountsRateLoaded: function(component, event, helper) {
+        //Filter Account GP rating
+        var map = component.get('v.map');
+        map.remove();
+        var map = L.map('map', {tap:false,zoomControl: true,drawControl: false,zoom:1,zoomAnimation:false,fadeAnimation:true,markerZoomAnimation:true,attributionControl:true}).setView([37.784173, -122.401557], 2);
+        var markers = [];
+        var global = window;     
+        
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+     }).addTo(map);
+        component.set("v.map", map);
+        var RateAccounts = event.getParam('RateAccounts');
+        console.log(RateAccounts);       
+        for (var i=0; i<RateAccounts.length; i++) {     
+            var account = RateAccounts[i];
+            var latLng = [account.Location__Latitude__s, account.Location__Longitude__s];
+            var accname = account.Name;
+            var rating = account.GP_Rating__c;
+            var Fundraising = account.Expected_Date_of_Next_Fundraise__c;
+            L.marker(latLng, {account: account}).addTo(map).bindPopup('GP Name: '+ accname +'<br>'+ 'Rating: '+ rating 
+                                                                      +'<br>'+ 'Expected Fundraise: '+ Fundraising).openPopup();
+        }
+        
+        map.on('click', function(e) {
+            //alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+            var showToast = $A.get("e.force:showToast"); 
+            var sMsg = "Latitude :" + (e.latlng.lat).toFixed(6);
+            sMsg += "\n Longitude : " + (e.latlng.lng).toFixed(6);
+            showToast.setParams({ 
+                'title' : 'Coordinates!', 
+                'message' : sMsg ,
+                //'type' : 'success'
+                
+            }); 
+            showToast.fire(); });
+    },  
+
+		accountsFundLoaded: function(component, event, helper) {
+            //Filter Account Fundraising
+            var map = component.get('v.map');
+                map.remove();
+                var map = L.map('map', {tap:false,zoomControl: true,drawControl: false,zoom:1,zoomAnimation:false,fadeAnimation:true,markerZoomAnimation:true,attributionControl:true}).setView([37.784173, -122.401557], 2);
+            var markers = [];
+                 var global = window;     
+             
+          L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+     }).addTo(map);
+            component.set("v.map", map);
+                
+            var FundRaisingAccounts = event.getParam('FundRaisingAccounts');
+                console.log(FundRaisingAccounts);       
+            for (var i=0; i<FundRaisingAccounts.length; i++) {     
+                var account = FundRaisingAccounts[i];
+                var latLng = [account.Location__Latitude__s, account.Location__Longitude__s];
+                var accname = account.Name;
+                var rating = account.GP_Rating__c;
+                var Fundraising = account.Expected_Date_of_Next_Fundraise__c;
+                L.marker(latLng, {account: account}).addTo(map).bindPopup('GP Name: '+ accname +'<br>'+ 'Rating: '+ rating 
+                                                                         +'<br>'+ 'Expected Fundraise: '+ Fundraising).openPopup();
+            }
+            
+            
+        map.on('click', function(e) {
+            //alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+            var showToast = $A.get("e.force:showToast"); 
+            var sMsg = "Latitude :" + (e.latlng.lat).toFixed(6);
+            sMsg += "\n Longitude : " + (e.latlng.lng).toFixed(6);
+            showToast.setParams({ 
+                'title' : 'Coordinates!', 
+                'message' : sMsg ,
+                //'type' : 'success'
+                
+            }); 
+            showToast.fire(); });
+        },
+
+	accountSelected: function(component, event, helper) {
+        // Center the map on the account selected in the list and go to the account location
+        var map = component.get('v.map');
+        var account = event.getParam("account");
+        var latLng = [account.Location__Latitude__s, account.Location__Longitude__s];
+        var accname = account.Name;
+        var rating = account.GP_Rating__c;
+        var Fundraising = account.Expected_Date_of_Next_Fundraise__c;
+        map.locate({setView: true, maxZoom: 15}).on('locationfound', function(e){
+        map.panTo([account.Location__Latitude__s, account.Location__Longitude__s]);
+         L.marker(latLng, {account: account}).addTo(map).bindPopup('GP Name: '+ accname +'<br>'+ 'Rating: '+ rating 
+                                                                   +'<br>'+ 'Expected Fundraise: '+ Fundraising).openPopup();});
+         
+         
+    },
+    
+    		AccountSearch: function(component, event, helper) {
+            //FIllter account markers with search request
+            var map = component.get('v.map');
+                map.remove();
+                var map = L.map('map', {tap:false,zoomControl: true,drawControl: false,zoom:1,zoomAnimation:false,fadeAnimation:true,markerZoomAnimation:true,attributionControl:true}).setView([37.784173, -122.401557], 2);
+            var markers = [];
+                 var global = window;     
+             
+          L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+     }).addTo(map);
+            component.set("v.map", map);
+                
+            var SearchAccounts = event.getParam('accounts');
+                console.log(SearchAccounts);       
+            for (var i=0; i<SearchAccounts.length; i++) {     
+                var account = SearchAccounts[i];
+                var latLng = [account.Location__Latitude__s, account.Location__Longitude__s];
+                var accname = account.Name;
+                var rating = account.GP_Rating__c;
+                var Fundraising = account.Expected_Date_of_Next_Fundraise__c;
+                L.marker(latLng, {account: account}).addTo(map).bindPopup('GP Name: '+ accname +'<br>'+ 'Rating: '+ rating 
+                                                                         +'<br>'+ 'Expected Fundraise: '+ Fundraising).openPopup();
+            }
+                
+        map.on('click', function(e) {
+            //alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+            var showToast = $A.get("e.force:showToast"); 
+            var sMsg = "Latitude :" + (e.latlng.lat).toFixed(6);
+            sMsg += "\n Longitude : " + (e.latlng.lng).toFixed(6);
+            showToast.setParams({ 
+                'title' : 'Coordinates!', 
+                'message' : sMsg ,
+                //'type' : 'success'
+                
+            }); 
+            showToast.fire(); });
+        },
+    
+    })
