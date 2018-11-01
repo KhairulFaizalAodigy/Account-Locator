@@ -1,0 +1,146 @@
+<aura:component controller="AccountController">
+        <!-- Register of Events-->
+       <aura:registerEvent name="accountsLoaded" type="c:AccountsLoaded"/> <!-- Event for initial Accounts loaded -->
+         <aura:registerEvent name="FilterAccountRate" type="c:FilterAccountRate"/> <!-- Event for GP Rating Filtered Accounts loaded -->
+        <aura:registerEvent name="FilterAccountFundRaising" type="c:FilterAccountFundRaising"/> <!-- Event for FundRaising Filtered Accounts loaded -->
+        <aura:registerEvent name="AllAccountsLoaded" type="c:AllAccountsLoaded"/> <!-- Event for All Accounts button loaded -->
+        <aura:registerEvent name="NearbyLocator" type="c:NearbyLocator"/> <!-- Event for Nearby Accounts button loaded -->
+        <aura:registerEvent name="SearchAccount" type="c:SearchAccount"/> <!-- Event for Search for Account Name button loaded -->
+        <!-- Event Handler-->
+        <aura:handler event="c:ReturnFilteredAccounts" action="{!c.returnFilterAccList}"/> <!-- This is the event after filtered by the bounds -->
+        <!--<aura:handler event="c:AddnewGPsWithClicked" action="{!c.CreateNew}"/>-->
+    	<aura:attribute name="accounts" type="Account[]"/>   <!--This is the attribute which will be loaded on the UI-->
+        <aura:attribute name="gpRating" type="String[]" description="store picklist options values"/>  <!--This is the attribute which will be loaded Filtered Accounts based on GP ratings-->
+        <aura:attribute name="Fundraise" type="String[]" description="store picklist options values"/> <!--This is the attribute which will be loaded Filtered Accounts based on Fundraising-->
+        <aura:attribute name="picklistValues" type="Object" /> <!-- Picklist to be called in helper -->
+        <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+        <aura:attribute name="objInfo" type="account" default="{sobjectType : 'Account'}" />
+        <aura:attribute name="searchResult" type="List" description="use for store and display account list return from server"/>
+        <aura:attribute name="searchKeyword" type="String" description="use for store user search input"/>
+        <aura:attribute name="Message" type="boolean" default="false" description="use for display no record found message"/>
+        
+        <!--<table class="slds-table slds-table_bordered slds-table_striped slds-table_cell-buffer slds-table_fixed-layout">-->
+    
+        
+        <article class="slds-card_boundary">
+        <div class="slds-box slds-theme_shade">
+      <div class="slds-card__header slds-grid">
+        <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                   
+          <div class="slds-media__body">
+            <h2 class="slds-card__header-title">   
+              <a class="slds-card__header-link slds-truncate" title="Account">
+                        <!--<div class="logoContainer">
+                      <img src="{!$Resource.Axiom_Logo}"/> </div>-->
+                  <div style="clear: left;">
+               <span class="slds-text-heading--large"> Axiom Mind Locator</span>
+              </div>
+                  
+                  </a>
+                <!-- SHOW LOADING SPINNER--> 
+        <lightning:spinner variant="brand" size="large" aura:id="Id_spinner" class="slds-hide" />
+               <!-- SEARCH INPUT AND SEARCH BUTTON--> 
+                
+            <lightning:layout verticalAlign='end' >
+                <lightning:layoutItem size="5" padding="around-small" >
+                    <lightning:input value="{!v.searchKeyword}"
+                                     required="true"
+                                     placeholder="search Keywords.."
+                                     aura:id="searchField"
+                                     label="Keywords"/>
+                </lightning:layoutItem>
+                
+                <lightning:layoutItem size="0" padding="around-small">
+                    <lightning:button onclick="{!c.Search}"
+                                      variant="brand"
+                                      label="Search"
+                                      iconName="utility:search"/> 
+                </lightning:layoutItem>
+            </lightning:layout>
+                
+                <lightning:button variant="brand" label="All GPs" title="AllGPsAction" onclick="{! c.handleClick }" />
+                
+                <lightning:button  variant="brand" label="Nearby GPs" title="Nearbyaction" onclick="{! c.NearbyClick }" />
+    			
+            
+                
+            </h2>
+              <!-- ERROR MESSAGE IF NOT RECORDS FOUND--> 
+            <aura:if isTrue="{!v.Message}">
+                <div class="slds-notify_container slds-is-relative">
+                    <div class="slds-notify slds-notify_toast slds-theme_error" role="alert">
+                        <div class="slds-notify__content">
+                            <h2 class="slds-text-heading_small">No Records Found...</h2>
+                        </div>
+                    </div>
+                </div>
+            </aura:if>
+          </div>
+           <div class="slds-grid"> 
+               <div class="slds-col"> 
+                <br></br>  <br></br>  <br></br>  <br></br>  <br></br>  
+                   <!-- Filtering GP Rating--> 
+              <div class="slds-form-element">
+          <label class="slds-form-element__label" for="select-01">GP Rating</label>
+          <div class="slds-select_container">
+             <ui:inputSelect  aura:id="accGPrating" class="slds-select"  change="{!c.onPicklistChange}"/>
+          </div>
+       </div>     
+          </div>
+          </div>
+            <div class="slds-grid">
+      <div class="slds-col"> 
+            <br></br>  <br></br>  <br></br>  <br></br>  <br></br>
+          <!-- Filtering Fundraise--> 
+             <div class="slds-form-element">
+          <label class="slds-form-element__label" for="select-01">Expected Next Fundraise</label>
+          <div class="slds-select_container">
+             <ui:inputSelect  aura:id="accFundRaising" class="slds-select"  change="{!c.onPicklistChange2}"/>
+          </div>
+          </div>
+     
+          </div>
+          </div>
+        </header>
+      </div>
+        </div>    
+      <div class="slds-card__body">
+          <div class="slds-scrollable--x">
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                    <thead>
+                    <tr class="slds-text-heading_label">
+                    
+                        <th scope="col"><div class="slds-truncate" title="Name">Menu</div></th>
+                        
+                      <th scope="col"><div class="slds-truncate" title="Name">Account Name</div></th> 
+                            
+                      <th scope="col"><div class="slds-truncate" title="GP Rating">GP Rating</div></th>
+                            
+                      <th scope="col"><div class="slds-truncate" title="Fundraise">Expected Fundraise</div></th>
+                       
+                      <th scope="col"><div class="slds-truncate" title="Geographical Focus">Geographical Focus</div></th>    
+                      
+                      <th scope="col"><div class="slds-truncate" title="City">City</div></th>    
+                    </tr>
+                    </thead>  
+         
+         
+                      
+                <tbody>
+                 <!--### display all records of AccountList attribute one by one by aura:iteration ###-->
+                   
+                    <aura:iteration items="{!v.accounts}" var="account">
+                       
+                        <c:AccountListItem account="{!account}"/> 
+                        
+                    </aura:iteration>
+                    
+                </tbody>
+                </table>
+                </div>
+                </div>
+     
+    </article>
+          
+        
+    </aura:component>
