@@ -1,0 +1,26 @@
+<aura:component controller="AccountController" >
+    <aura:attribute name="map" type="Object"/>    
+	<aura:handler event="c:AccountsLoaded" action="{!c.accountsLoaded}"/>
+	<aura:handler event="c:AccountSelected" action="{!c.accountSelected}"/>
+    <aura:handler event="c:FilterAccountRate" action="{!c.accountsRateLoaded}"/>
+    <aura:handler event="c:FilterAccountFundRaising" action="{!c.accountsFundLoaded}"/>
+    <aura:handler event="c:AllAccountsLoaded" action="{!c.AllaccountsLoaded}"/>
+    <aura:handler event="c:NearbyLocator" action="{!c.MapNearby}"/>
+    <aura:handler event="c:SearchAccount" action="{!c.AccountSearch}"/>
+    <aura:registerEvent name="ReturnFilteredAccounts" type="c:ReturnFilteredAccounts"/>
+    <!--<aura:registerEvent name="AddnewGPsWithClicked" type="c:AddnewGPsWithClicked"/>-->
+
+    <!--<aura:registerEvent name="NearbyLocator" type="c:NearbyLocator"/>-->
+     <aura:attribute name="Filteredaccounts" type="Account[]"/>  
+
+  <ltng:require styles="{!join(',', 
+                          $Resource.leaflet + '/leaflet.css')}"
+                  scripts="{!join(',', 
+                           $Resource.leaflet + '/leaflet.js')}"
+                  afterScriptsLoaded="{!c.jsLoaded}" />
+		
+    <div class="map" id="map">    </div>
+	
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+
+</aura:component>
