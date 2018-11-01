@@ -1,0 +1,28 @@
+.THIS {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    background: #FFFFFF;
+    height: 100%;
+
+}
+
+.THIS .slds-text-heading--large{
+    display:block;
+    position: relative;
+    
+    color:#A9A9A9;
+    font-family: "BenchNine";
+    text-transform:uppercase;
+    font-weight: 525;
+}
+
+/*.THIS .logoContainer {
+    display: inline-block;
+     position: relative;
+    left: -45px;
+  padding: 0 0 0 30px;
+  position: left;
+  width: 15%;
+  height: 3px;
+}*/
