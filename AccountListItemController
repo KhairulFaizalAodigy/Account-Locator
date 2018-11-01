@@ -1,0 +1,37 @@
+({
+    
+    doInit : function(component, event) {
+
+    },
+    
+    accountSelected : function(component) {
+        var event = $A.get("e.c:AccountSelected");
+        event.setParams({"account": component.get("v.account")});
+        event.fire();
+    },
+    
+    onClick : function(component, event, helper) {
+        var recordId = component.get('v.account.Id');
+        var navEvt;
+        if(recordId) {
+            navEvt = $A.get("e.force:navigateToSObject");
+            navEvt.setParam("recordId", recordId);
+        } else {
+            navEvt = $A.get("e.force:navigateToURL");
+            navEvt.setParam("url", component.get('v.relativeUrl'));
+        }
+        //window.open($A.get("http://" +"e.force:navigateToURL"+recordId));
+            navEvt.fire();
+    },
+    
+    edit : function(component, event, helper) {
+        var editRecordEvent = $A.get("e.force:editRecord");
+        editRecordEvent.setParams({
+            "recordId": component.get("v.account.Id")
+        });
+        editRecordEvent.fire();
+    },
+    
+    
+    
+})
