@@ -1,0 +1,51 @@
+<aura:component>
+	<aura:registerEvent name="accountSelected" type="c:AccountSelected"/>
+    <aura:attribute name="account" type="Account"/>
+    <!-- For Account list Iteration-->
+  
+    <tr>
+        <td>
+            <ui:menu>
+                <ui:menuTrigger>
+                    
+                    <button class="slds-button slds-button--icon-xx-small slds-button--icon-border-filled" size="xxx-small" aria-haspopup="true" title="Show More">
+                        <lightning:icon iconName="utility:down" size="xx-small" alternativeText="Move this item up" />
+                        
+                    </button>
+                </ui:menuTrigger>
+                <ui:menuList class="actionMenu" aura:id="actionMenu">
+                    <ui:actionMenuItem aura:id="item2" label="View Details" click="{!c.onClick}"/>
+                    <ui:actionMenuItem aura:id="item2" label="Edit" click="{!c.edit}"/>
+                </ui:menuList>
+            </ui:menu>
+        </td>
+		<td>
+            <li><a onclick="{!c.accountSelected}">{!v.account.Name}</a></li>
+
+        </td>
+        
+        <td>
+            <li><a onclick="{!c.accountSelected}" >{!v.account.GP_Rating__c}</a></li>      
+            
+        </td>
+        
+        
+        <td>
+		 <li><a onclick="{!c.accountSelected}" >{!v.account.Expected_Date_of_Next_Fundraise__c}</a></li>
+                  
+        </td>
+        
+		<td>
+		 <li><a onclick="{!c.accountSelected}">{!v.account.Geographical_Focus__c}</a></li>
+                  
+        </td>
+        
+        <td>
+		 <li><a onclick="{!c.accountSelected}"> {!v.account.ShippingCity}</a></li>
+                  
+        </td>	
+        
+         
+     </tr>
+    
+</aura:component>
