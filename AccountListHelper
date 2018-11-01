@@ -1,0 +1,110 @@
+({
+ fetchPickListVal: function(component, fieldName, elementId) {
+        var action = component.get("c.getselectOptions");
+        action.setParams({
+            "objObject": component.get("v.objInfo"),
+            "fld": fieldName
+        });
+        var opts = [];
+        action.setCallback(this, function(response) {
+            if (response.getState() == "SUCCESS") {
+                var allValues = response.getReturnValue();
+ 
+                if (allValues != undefined && allValues.length > 0) {
+                    opts.push({
+                        class: "optionClass",
+                        label: "--- None ---",
+                        value: ""
+                    });
+                }
+                for (var i = 0; i < allValues.length; i++) {
+                    opts.push({
+                        class: "optionClass",
+                        label: allValues[i],
+                        value: allValues[i]
+                    });
+                }
+                component.find(elementId).set("v.options", opts);
+            }
+        });
+        $A.enqueueAction(action);
+    },
+    
+    fetchPickListVal2: function(component, fieldName, elementId) {
+        var action = component.get("c.getselectOptions");
+        action.setParams({
+            "objObject": component.get("v.objInfo"),
+            "fld": fieldName
+        });
+        var opts = [];
+        action.setCallback(this, function(response) {
+            if (response.getState() == "SUCCESS") {
+                var allValues = response.getReturnValue();
+ 
+                if (allValues != undefined && allValues.length > 0) {
+                    opts.push({
+                        class: "optionClass",
+                        label: "--- None ---",
+                        value: ""
+                    });
+                }
+                for (var i = 0; i < allValues.length; i++) {
+                    opts.push({
+                        class: "optionClass",
+                        label: allValues[i],
+                        value: allValues[i]
+                    });
+                }
+                component.find(elementId).set("v.options", opts);
+            }
+        });
+        $A.enqueueAction(action);
+    },
+    
+        SearchHelper: function(component, event) {
+        // show spinner message
+         component.find("Id_spinner").set("v.class" , 'slds-show');
+        var action = component.get("c.fetchAccount");
+        action.setParams({
+            'searchKeyWord': component.get("v.searchKeyword")
+        });
+        action.setCallback(this, function(response) {
+           // hide spinner when response coming from server 
+            component.find("Id_spinner").set("v.class" , 'slds-hide');
+            var state = response.getState();
+            if (state === "SUCCESS") {
+                var storeResponse = response.getReturnValue();
+                component.set("v.accounts", response.getReturnValue());
+                            window.setTimeout($A.getCallback(function() {
+                var event = $A.get("e.c:SearchAccount");
+                console.log(event);
+                event.setParams({"accounts":response.getReturnValue()});
+                event.fire();}), 500);
+                // if storeResponse size is 0 ,display no record found message on screen.
+                if (storeResponse.length == 0) {
+                    component.set("v.Message", true);
+                } else {
+                    component.set("v.Message", false);
+                }
+                                
+                // set searchResult list with return value from server.
+                component.set("v.searchResult", storeResponse); 
+                
+            }else if (state === "INCOMPLETE") {
+                alert('Response is Incompleted');
+            }else if (state === "ERROR") {
+                var errors = response.getError();
+                if (errors) {
+                    if (errors[0] && errors[0].message) {
+                        alert("Error message: " + 
+                                    errors[0].message);
+                    }
+                } else {
+                    alert("Unknown error");
+                }
+            }
+        });
+        $A.enqueueAction(action);
+    },
+ 
+})
