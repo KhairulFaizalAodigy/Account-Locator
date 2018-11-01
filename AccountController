@@ -1,0 +1,124 @@
+public with sharing class AccountController {
+    
+    @AuraEnabled // Return all accounts
+    public static List<Account> findAll() {
+
+     List < sObject  > returnList = new List < sObject  > ();
+          List < Account > lstOfAccount = [SELECT id, name, AnnualRevenue, Location__Latitude__s, Location__Longitude__s, GP_Rating__c, Expected_Date_of_Next_Fundraise__c, Geographical_Focus__c, AUM__c, ShippingCity
+                                            FROM Account
+                                            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL 
+                                            ORDER BY name 
+                                            LIMIT 500]; 
+        	List < Office_Location__c > OfficeLocation = [SELECT id, name, Location__Latitude__s, Location__Longitude__s, GP_Rating__c, Expected_Date_of_Next_Fundraise__c, Geographical_Focus__c, AUM__c
+                                            FROM Office_Location__c
+                                            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL 
+                                            ORDER BY name 
+                                            LIMIT 500]; //List of other office location custom objects
+              for (Account acc: lstOfAccount) {
+   				returnList.add(acc);
+ 			 }
+        	for (Office_Location__c Office: OfficeLocation) {
+   				returnList.add(Office);
+ 			 }
+  				return returnList;
+    }
+    	 @AuraEnabled  // Filtering accounts according to GP Rating
+        public static List<Account> findAllRate(string fld) {
+            List < sObject > returnList = new List < sObject > ();
+          List < Account > lstOfAccount = [SELECT id, name, AnnualRevenue, Location__Latitude__s, Location__Longitude__s, GP_Rating__c, Expected_Date_of_Next_Fundraise__c, Geographical_Focus__c, AUM__c
+                                            FROM Account
+                                            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL AND GP_Rating__c = :fld
+                                            ORDER BY name 
+                                            LIMIT 500];
+             List < Office_Location__c > OfficeLocation = [SELECT id, name, Location__Latitude__s, Location__Longitude__s, GP_Rating__c, Expected_Date_of_Next_Fundraise__c, Geographical_Focus__c, AUM__c
+                                            FROM Office_Location__c
+                                            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL AND GP_Rating__c = :fld
+                                            ORDER BY name 
+                                            LIMIT 500]; //List of other office location custom objects
+              for (Account acc: lstOfAccount) {
+   				returnList.add(acc);
+ 			 }
+        	for (Office_Location__c Office: OfficeLocation) {
+   				returnList.add(Office);
+ 			 }
+  				return returnList;      
+ 			 }
+   
+     @AuraEnabled // Filtering accounts according to fundraising
+        public static List<Account> Fundraising(string fld) {
+            List < sObject > returnList = new List < sObject > ();
+          List < Account > lstOfAccount = [SELECT id, name, AnnualRevenue, Location__Latitude__s, Location__Longitude__s, GP_Rating__c, Expected_Date_of_Next_Fundraise__c, Geographical_Focus__c, AUM__c
+                                            FROM Account
+                                            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL AND Expected_Date_of_Next_Fundraise__c = :fld
+                                            ORDER BY name 
+                                            LIMIT 500];
+		List < Office_Location__c > OfficeLocation = [SELECT id, name, Location__Latitude__s, Location__Longitude__s, GP_Rating__c, Expected_Date_of_Next_Fundraise__c, Geographical_Focus__c, AUM__c
+                                            FROM Office_Location__c
+                                            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL AND Expected_Date_of_Next_Fundraise__c = :fld
+                                            ORDER BY name 
+                                            LIMIT 500]; //List of other office location custom objects
+              for (Account acc: lstOfAccount) {
+   				returnList.add(acc);
+ 			 }
+        	for (Office_Location__c Office: OfficeLocation) {
+   				returnList.add(Office);
+ 			 }
+  				return returnList;       
+ 			 }
+
+@AuraEnabled
+ public static List < String > getselectOptions(sObject objObject, string fld) {
+  system.debug('objObject --->' + objObject);
+  system.debug('fld --->' + fld);
+  List < String > allOpts = new list < String > ();
+  // Get the object type of the SObject.
+  Schema.sObjectType objType = objObject.getSObjectType();
+ 
+  // Describe the SObject using its object type.
+  Schema.DescribeSObjectResult objDescribe = objType.getDescribe();
+ 
+  // Get a map of fields for the SObject
+  map < String, Schema.SObjectField > fieldMap = objDescribe.fields.getMap();
+ 
+  // Get the list of picklist values for this field.
+  list < Schema.PicklistEntry > values =
+   fieldMap.get(fld).getDescribe().getPickListValues();
+ 
+  // Add these values to the selectoption list.
+  for (Schema.PicklistEntry a: values) {
+   allOpts.add(a.getValue());
+  }
+  system.debug('allOpts ---->' + allOpts);
+  allOpts.sort();
+  return allOpts;
+ }
+
+     @AuraEnabled //Searching of Accounts
+ public static List < account > fetchAccount(String searchKeyWord) {
+  String searchKey = '%'+searchKeyWord + '%';
+ List < sObject  > returnList = new List < sObject  > ();
+          List < Account > lstOfAccount = [SELECT id, name, AnnualRevenue, Location__Latitude__s, Location__Longitude__s, GP_Rating__c, Expected_Date_of_Next_Fundraise__c, Geographical_Focus__c, AUM__c, ShippingCity
+                                            FROM Account
+                                            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL AND (name LIKE: searchKey OR GP_Rating__c LIKE: searchKey OR Expected_Date_of_Next_Fundraise__c LIKE: searchKey OR Geographical_Focus__c LIKE: searchKey OR ShippingCity LIKE: searchKey) 
+                                            ORDER BY name 
+                                            LIMIT 500]; 
+     
+        	List < Office_Location__c > OfficeLocation = [SELECT id, name, Location__Latitude__s, Location__Longitude__s, GP_Rating__c, Expected_Date_of_Next_Fundraise__c, Geographical_Focus__c, AUM__c
+                                            FROM Office_Location__c
+                                            WHERE Location__Latitude__s != NULL AND Location__Longitude__s != NULL AND (name LIKE: searchKey OR GP_Rating__c LIKE: searchKey OR Expected_Date_of_Next_Fundraise__c LIKE: searchKey OR Geographical_Focus__c LIKE: searchKey)  
+                                            ORDER BY name 
+                                            LIMIT 500]; 
+                                               
+              for (Account acc: lstOfAccount) {
+   				returnList.add(acc);
+ 			 }
+
+     		for (Office_Location__c Office: OfficeLocation) {
+   				returnList.add(Office);
+ 			 }
+
+  				return returnList;
+ }
+ 
+
+}
