@@ -1,0 +1,19 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" access="global">
+    
+    <!-- Main Application -->
+    <div class="slds-grid slds-wrap">
+        <div class="slds-scrollable--y slds-large-size_6-of-12 slds-small-size_12-of-12">
+              <!-- List Component -->
+            <c:AccountList/>  
+        </div>
+        
+        <div class="slds-large-size_6-of-12 slds-small-size_12-of-12">
+             <!-- List Component -->
+           <c:AccountMap />
+ 
+            
+        </div>
+    </div>  
+    
+   
+</aura:component>
