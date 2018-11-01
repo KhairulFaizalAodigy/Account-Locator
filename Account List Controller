@@ -1,0 +1,150 @@
+({
+    doInit : function(component, event, helper) {
+        helper.fetchPickListVal(component, 'GP_Rating__c', 'accGPrating');
+        helper.fetchPickListVal(component, 'Expected_Date_of_Next_Fundraise__c', 'accFundRaising');
+        var action = component.get("c.findAll");
+        action.setCallback(this, function(a) {
+            component.set("v.accounts", a.getReturnValue());
+            window.setTimeout($A.getCallback(function() {
+                var event = $A.get("e.c:AccountsLoaded");
+                console.log(event);
+                event.setParams({"accounts": a.getReturnValue()});
+                event.fire();
+            }), 500);
+        });
+        $A.enqueueAction(action);
+        
+    },
+    //This is the listener when event return 
+    returnFilterAccList : function(component, event, helper){
+        var filterAccList = event.getParam("Filteraccount");
+        console.log('filterAccList: '+filterAccList);
+         console.log('filterAccList Name: '+filterAccList.Name);
+    	component.set("v.accounts", filterAccList);
+    },
+    
+    handleClick: function(component, event, helper){
+        var action = component.get("c.findAll");
+        action.setCallback(this, function(a) {
+            component.set("v.accounts", a.getReturnValue());
+            window.setTimeout($A.getCallback(function() {
+                var event = $A.get("e.c:AllAccountsLoaded");
+                event.setParams({"accounts": a.getReturnValue()});
+                event.fire();
+            }), 500);
+        });
+        $A.enqueueAction(action);  
+        
+    },
+    
+    NearbyClick: function(component, event, helper){
+        var action = component.get("c.findAll");
+        action.setCallback(this, function(a) {
+            window.setTimeout($A.getCallback(function() {
+                console.log('call back from NearbyClick');
+                var event = $A.get("e.c:NearbyLocator");
+                //var Filteraccounts = event.getParam('Filteredaccounts');
+                event.setParams({"accounts":a.getReturnValue()});
+                //event.setParams({"v.accounts":"Null"});
+                event.fire();
+            }), 500); 
+        }); 
+        $A.enqueueAction(action);
+
+    },
+    
+    onPicklistChange: function(component, event, response, helper) {
+        // get the value of select option to filter GP Rating
+        
+        console.log('----------: ' + event.getSource().get("v.value"));
+        var action = component.get("c.findAllRate");
+        
+        action.setParams({ 
+            fld : event.getSource().get("v.value") //fld name must be the same as your apex: public static List<Account> findAllRate(string fld) 
+        });          
+        
+        action.setCallback(this, function(response) {
+            
+            var state = response.getState();                                    
+            
+            if (state === "SUCCESS") {
+                var Account1 = response.getReturnValue();    
+                component.set("v.accounts", Account1); //This is to set back to the table accounts attribute
+            } else {
+                console.log('Data fetch failed : ' + response.getReturnValue());
+            }
+            
+            window.setTimeout($A.getCallback(function(response) {
+                var event = $A.get("e.c:FilterAccountRate");
+                event.setParams({"RateAccounts": Account1});
+                event.fire();
+            }), 500);
+            
+        });
+        $A.enqueueAction(action);
+        //alert(event.getSource().get("v.value"));
+    },
+    
+    
+    onPicklistChange2: function(component, event, helper) {
+        // get the value of select option to filter Fund Raising
+        console.log('----------: ' + event.getSource().get("v.value"));
+        var action = component.get("c.Fundraising");
+        
+        action.setParams({ 
+            fld : event.getSource().get("v.value") //fld name must be the same as your apex: public static List<Account> findAllRate(string fld) 
+        });          
+        
+        action.setCallback(this, function(response) {
+            
+            var state = response.getState();                                    
+            
+            if (state === "SUCCESS") {
+                var Account1 = response.getReturnValue();  
+                console.log('account' + Account1);
+                component.set("v.accounts", Account1); //This is to set back to the table accounts attribute
+            } else {
+                console.log('Data fetch failed : ' + response.getReturnValue());
+            }
+            
+            window.setTimeout($A.getCallback(function(response) {
+                var event = $A.get("e.c:FilterAccountFundRaising");
+                event.setParams({"FundRaisingAccounts": Account1});
+                event.fire();
+            }), 500);
+            
+        });
+        $A.enqueueAction(action);
+        
+        //alert(event.getSource().get("v.value"));
+    },
+    
+    Search: function(component, event, helper) {
+        var searchField = component.find('searchField');
+        var isValueMissing = searchField.get('v.validity').valueMissing;
+        // if value is missing show error message and focus on field
+        if(isValueMissing) {
+            searchField.showHelpMessageIfInvalid();
+            searchField.focus();
+        }else{
+          // else call helper function 
+            helper.SearchHelper(component, event);
+        }
+    },
+    
+    /*CreateNew: function(component, event, helper){
+         var Lat = event.getParam("Lat");
+         var Long = event.getParam("Long");
+        var createRecordEvent = $A.get("e.force:createRecord");
+    createRecordEvent.setParams({
+        "entityApiName": "Account",
+         "defaultFieldValues": {   
+               'Location__Latitude__s' : Lat,
+               'Location__Longitude__s' : Long                
+              }
+    });
+    createRecordEvent.fire();
+ 
+    }*/
+
+})
